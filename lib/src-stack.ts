@@ -2,14 +2,15 @@ import { RemovalPolicy, Stack, StackProps, Environment, Duration } from "aws-cdk
 import { AmazonLinuxGeneration, AmazonLinuxImage, Instance, InstanceClass, InstanceSize, InstanceType, Port, Vpc } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 import { Cluster, ClusterType } from "@aws-cdk/aws-redshift-alpha";
-import { Bucket, BucketEncryption, BlockPublicAccess } from "aws-cdk-lib/aws-s3";
-import { Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Bucket, BucketEncryption, BlockPublicAccess, EventType } from "aws-cdk-lib/aws-s3";
+import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { AssetCode, Runtime, Function } from "aws-cdk-lib/aws-lambda";
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { S3EventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 export interface EnvironmentConfig extends Environment {
   pattern: string;
@@ -44,12 +45,23 @@ export class RedshiftDemoStack extends Stack {
       roleName: `${prefix}-cleaner-role`,
       assumedBy: new ServicePrincipal('lambda.amazonaws.com')
     });
+    // add cloudwatch logs permissions to cleaner role
+    cleanerRole.addToPolicy(new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents'
+      ],
+      resources: ['*']
+    }));
+
     s3.grantPut(cleanerRole);
     s3.grantRead(cleanerRole);
     rawS3.grantRead(cleanerRole);
 
     const cleanerLambda = new PythonFunction(this, `${prefix}-cleaner`, {
-      entry: './lambda/',
+      entry: './cleaner-lambda/',
       runtime: Runtime.PYTHON_3_8,
       index: 'main.py',
       handler: 'lambda_handler',
@@ -59,6 +71,14 @@ export class RedshiftDemoStack extends Stack {
       role: cleanerRole,
       timeout: Duration.minutes(1)
     });
+
+    const s3PutEventSource = new S3EventSource(rawS3, {
+      events: [
+        EventType.OBJECT_CREATED_PUT
+      ]
+    });
+
+    cleanerLambda.addEventSource(s3PutEventSource);
 
     const lambdaRole = new Role(this, `${prefix}-lambda-role`, {
       roleName: `${prefix}-lambda-role`,
