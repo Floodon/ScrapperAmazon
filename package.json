@@ -23,6 +23,7 @@
     "typescript": "~4.9.4"
   },
   "dependencies": {
+    "@aws-cdk/aws-lambda-python-alpha": "^2.61.1-alpha.0",
     "@json2csv/plainjs": "^6.1.2",
     "amazon-buddy": "^2.2.45",
     "aws-cdk": "^2.43.1",

@@ -7,6 +7,7 @@ import { Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { AssetCode, Runtime, Function } from "aws-cdk-lib/aws-lambda";
+import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 
@@ -23,12 +24,40 @@ export class RedshiftDemoStack extends Stack {
 
     const prefix = `${reg.pattern}-${reg.stage}-redshift`;
 
+    const rawS3 = new Bucket(this, `${prefix}-data-raw`, {
+      bucketName: `${prefix}-data-raw`,
+      encryption: BucketEncryption.S3_MANAGED,
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL
+    });
+
     const s3 = new Bucket(this, `${prefix}-data-ingest`, {
       bucketName: `${prefix}-data-ingest`,
       encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL
+    });
+
+    const cleanerRole = new Role(this, `${prefix}-cleaner-role`, {
+      roleName: `${prefix}-cleaner-role`,
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com')
+    });
+    s3.grantPut(cleanerRole);
+    s3.grantRead(cleanerRole);
+    rawS3.grantRead(cleanerRole);
+
+    const cleanerLambda = new PythonFunction(this, `${prefix}-cleaner`, {
+      entry: './lambda/',
+      runtime: Runtime.PYTHON_3_8,
+      index: 'main.py',
+      handler: 'lambda_handler',
+      environment: {
+        // define env variables if needed
+      },
+      role: cleanerRole,
+      timeout: Duration.minutes(1)
     });
 
     const lambdaRole = new Role(this, `${prefix}-lambda-role`, {
