@@ -65,6 +65,7 @@ export class RedshiftDemoStack extends Stack {
       runtime: Runtime.PYTHON_3_8,
       index: 'main.py',
       handler: 'lambda_handler',
+      memorySize: 1024,
       environment: {
         // define env variables if needed
       },
