@@ -11,8 +11,8 @@ from io import StringIO
 #If running locally
 s3 = boto3.client(
     "s3",
-    aws_access_key_id='AKIAS3KWRQXFJVFHWMA4',
-    aws_secret_access_key='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'
+    aws_access_key_id=<ACCESS KEY>,
+    aws_secret_access_key=<SECRET ACCESS KEY>
 )
 
 
