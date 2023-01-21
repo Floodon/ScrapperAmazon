@@ -44,7 +44,7 @@ export class RedshiftDemoStack extends Stack {
       allowPublicSubnet: true,
       runtime: Runtime.NODEJS_16_X,
       memorySize: 1024,
-      timeout: Duration.seconds(60),
+      timeout: Duration.minutes(3),
       role: lambdaRole,
       environment: {
         BUCKET_NAME: s3.bucketName

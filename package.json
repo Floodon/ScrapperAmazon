@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "bundle": "npx esbuild lambda/main.js --bundle --platform=node --target=node16 --external:aws-sdk --outfile=lambda/bundle/main.js"
   },
   "devDependencies": {
     "@aws-cdk/aws-redshift-alpha": "^2.61.1-alpha.0",
@@ -22,8 +23,12 @@
     "typescript": "~4.9.4"
   },
   "dependencies": {
+    "@json2csv/plainjs": "^6.1.2",
+    "amazon-buddy": "^2.2.45",
     "aws-cdk": "^2.43.1",
+    "aws-sdk": "^2.1299.0",
     "constructs": "^10.0.0",
+    "esbuild": "^0.17.3",
     "source-map-support": "^0.5.21"
   }
 }
