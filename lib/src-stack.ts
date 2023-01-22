@@ -89,7 +89,7 @@ export class RedshiftDemoStack extends Stack {
     s3.grantRead(lambdaRole);
 
     const lambda = new Function(this, `${prefix}-scrapper`, {
-      code: new AssetCode('lambda/bundle'),
+      code: new AssetCode('scraper-lambda/bundle'),
       handler: 'main.handler',
       allowPublicSubnet: true,
       runtime: Runtime.NODEJS_16_X,

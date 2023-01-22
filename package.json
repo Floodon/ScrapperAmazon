@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "bundle": "npx esbuild lambda/main.js --bundle --platform=node --target=node16 --external:aws-sdk --outfile=lambda/bundle/main.js"
+    "bundle": "npx esbuild scraper-lambda/main.js --bundle --platform=node --target=node16 --external:aws-sdk --outfile=scraper-lambda/bundle/main.js"
   },
   "devDependencies": {
     "@aws-cdk/aws-redshift-alpha": "^2.61.1-alpha.0",
